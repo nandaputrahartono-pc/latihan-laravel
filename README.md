@@ -1,58 +1,149 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Aplikasi Data Mahasiswa
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi Laravel sederhana dengan studi kasus data mahasiswa. Project ini dibuat untuk memenuhi tugas Pertemuan 7 PBO tentang alur **Route -> Controller -> Blade**.
 
-## About Laravel
+## Pemeriksaan kriteria tugas
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+| Kriteria | Status | Implementasi |
+| --- | --- | --- |
+| Tambahkan satu halaman | Terpenuhi | Tersedia halaman daftar `/mahasiswa` dan halaman detail `/mahasiswa/{id}`. |
+| Minimal satu route dengan parameter | Terpenuhi | Route `mahasiswa.show` menggunakan parameter `{id}`. |
+| Controller menyiapkan data | Terpenuhi | `MahasiswaController` menyediakan data contoh melalui method `mahasiswaData()`. |
+| Blade `@if` | Terpenuhi | Digunakan untuk memeriksa data kosong dan detail yang tidak ditemukan. |
+| Blade `@foreach` | Terpenuhi | Digunakan untuk menampilkan daftar mahasiswa. |
+| README singkat dan dokumentasi | Terpenuhi | README ini menjelaskan alur, file, dan cara menjalankan aplikasi. |
+| Screenshot hasil | Terpenuhi | Screenshot halaman daftar dan detail disertakan pada bagian dokumentasi. |
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Fitur aplikasi
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Aplikasi memiliki dua halaman utama:
 
-## Learning Laravel
+1. **Daftar mahasiswa** pada `/mahasiswa`.
+2. **Detail mahasiswa** pada `/mahasiswa/{id}`.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Data yang ditampilkan terdiri dari nama, NIM, angkatan, minat, email, dan nomor HP. Data masih berupa array di dalam Controller karena tugas belum membutuhkan database.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Penjelasan kode
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### 1. Route - `routes/web.php`
 
-## Agentic Development
+```php
+Route::get('/mahasiswa', [MahasiswaController::class, 'index'])
+    ->name('mahasiswa.index');
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+Route::get('/mahasiswa/{id}', [MahasiswaController::class, 'show'])
+    ->whereNumber('id')
+    ->name('mahasiswa.show');
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Route pertama mengarahkan URL `/mahasiswa` ke method `index()`. Route kedua menerima parameter `id`, misalnya `/mahasiswa/1`, lalu mengarahkan request ke method `show()`.
 
-## Contributing
+`whereNumber('id')` memastikan parameter ID hanya berupa angka. Kedua route memiliki nama agar URL dapat dibuat menggunakan helper `route()` tanpa menulis alamat secara manual.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 2. Controller - `app/Http/Controllers/MahasiswaController.php`
 
-## Code of Conduct
+Method `index()` mengambil data mahasiswa dari `mahasiswaData()` dan mengirimkannya ke view `mahasiswa.index`.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Method `show(string $id)` menerima parameter dari URL, mencari data mahasiswa berdasarkan ID, kemudian mengirim data tersebut ke view `mahasiswa.show`. Jika ID tidak ditemukan, nilai mahasiswa menjadi `null` agar Blade dapat menampilkan pesan yang sesuai.
 
-## Security Vulnerabilities
+Method `mahasiswaData()` berisi data contoh mahasiswa dalam bentuk array. Pemisahan data ini membuat daftar dan detail menggunakan sumber data yang sama sehingga tidak terjadi perbedaan isi antara kedua halaman.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 3. Blade daftar - `resources/views/mahasiswa/index.blade.php`
 
-## License
+View daftar menggunakan:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+- `@if` untuk menampilkan pesan ketika data mahasiswa kosong.
+- `@foreach` untuk mengulang seluruh data mahasiswa.
+- `route('mahasiswa.show', ['id' => ...])` untuk membuat link menuju halaman detail.
+- `{{ }}` untuk menampilkan data dengan output yang di-escape oleh Blade.
+
+Alur halaman daftar:
+
+```text
+GET /mahasiswa
+    -> mahasiswa.index
+    -> MahasiswaController@index
+    -> mahasiswa/index.blade.php
+```
+
+### 4. Blade detail - `resources/views/mahasiswa/show.blade.php`
+
+View detail menggunakan `@if ($mahasiswa !== null)` untuk membedakan dua kondisi:
+
+- Data ditemukan: detail mahasiswa ditampilkan.
+- Data tidak ditemukan: pesan ID tidak ditemukan ditampilkan.
+
+View ini juga menyediakan link kembali ke route `mahasiswa.index`.
+
+Alur halaman detail:
+
+```text
+GET /mahasiswa/1
+    -> mahasiswa.show dengan parameter id = 1
+    -> MahasiswaController@show
+    -> mahasiswa/show.blade.php
+```
+
+## Struktur file
+
+```text
+app/Http/Controllers/MahasiswaController.php
+resources/views/mahasiswa/index.blade.php
+resources/views/mahasiswa/show.blade.php
+routes/web.php
+tests/Feature/MahasiswaTest.php
+screenshots/mahasiswa.png
+screenshots/mahasiswa-detail-1.png
+screenshots/mahasiswa-detail-2.png
+screenshots/mahasiswa-detail-3.png
+```
+
+## Screenshot hasil
+
+### Halaman daftar mahasiswa - `/mahasiswa`
+
+![Screenshot halaman daftar mahasiswa](screenshots/mahasiswa.png)
+
+Halaman ini menampilkan tiga mahasiswa dan link menuju halaman detail masing-masing.
+
+### Halaman detail mahasiswa - `/mahasiswa/1`
+
+![Screenshot detail mahasiswa ID 1](screenshots/mahasiswa-detail-1.png)
+
+Halaman ini membuktikan bahwa parameter `id` berhasil diterima dan digunakan untuk menampilkan data Nanda Putra.
+
+### Halaman detail mahasiswa - `/mahasiswa/2`
+
+![Screenshot detail mahasiswa ID 2](screenshots/mahasiswa-detail-2.png)
+
+### Halaman detail mahasiswa - `/mahasiswa/3`
+
+![Screenshot detail mahasiswa ID 3](screenshots/mahasiswa-detail-3.png)
+
+## Cara menjalankan project
+
+Pastikan PHP 8.3 atau lebih baru, Composer, dan Node.js sudah terpasang.
+
+```bash
+composer install
+copy .env.example .env
+php artisan key:generate
+npm install
+npm run build
+php artisan serve
+```
+
+Buka alamat berikut di browser:
+
+- Daftar mahasiswa: `http://127.0.0.1:8000/mahasiswa`
+- Detail mahasiswa: `http://127.0.0.1:8000/mahasiswa/1`
+
+## Pengujian
+
+Jalankan pengujian dengan perintah:
+
+```bash
+php artisan test --compact
+```
+
+Feature test memeriksa halaman daftar, link menuju detail, penggunaan parameter ID, dan kondisi ketika ID mahasiswa tidak ditemukan.
